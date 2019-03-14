@@ -8,7 +8,11 @@
       <td>
         <div class="groupBox">
           <button type="submit" name="update"  id="prev" disabled >&lt;</button>
+          {% if auditDenied %}
+            <button type="submit" name="update" disabled>Submit</button>
+          {% else %}
           <button type="submit" name="update" onclick="form.action = '{{ uri }}&item={{ itemId }}';">Submit</button>
+          {% endif %}
           <button type="submit" name="update" id="next" disabled  >&gt;</button>
         </div>
       </td>
@@ -22,7 +26,7 @@
   </table>
   <span id="editingExistingWarning" hidden><b>You are editing an existing decision. [<a href="#" onclick="event.preventDefault();clearDecisionEditing();">clear</a>]</b></span>
   <div class="groupBox">
-    <fieldset style="display:inline">
+    <fieldset style="display:inline"{% if auditDenied %} disabled{% endif %}>
       <legend>
         {{ 'Issue Type'| trans }}
       </legend>
@@ -34,6 +38,7 @@
       {% endfor %}
     </fieldset>
     <br/>
+    {% if not auditDenied %}
     <input type="number" name="decision_pk" value="-1" hidden>
     {{ 'Description'| trans }}<img src="images/info_16.png" title="{{ 'Classification of the finding, such as copyright statement or TSU number or ECC warning or author but no copyright statement'|trans }}" alt="" class="info-bullet"/>: <br/>
     <textarea rows="2" name="description" style="width:90%" class="supervised">{{ description }}</textarea><br/>
@@ -41,6 +46,7 @@
     <textarea rows="2" name="textFinding" style="width:90%" class="supervised">{{ textFinding }}</textarea><br/>
     {{ 'Comment'| trans }}<img src="images/info_16.png" title="{{ 'A user can place comment for leaving a notice that ma be viewed by other users on Fossology'|trans }}" alt="" class="info-bullet"/>: <br/>
     <textarea rows="2" name="comment" style="width:90%" class="supervised">{{ comment }}</textarea><br/>
+    {% endif %}
   </div>
 </form>
 
@@ -68,6 +74,7 @@
           {% endif %}
         </td>
         <td id="actionsOf{{ row.copyright_decision_pk }}">
+          {% if not auditDenied %}
           <span class="basicActions">
             <img src="images/button_edit.png" onclick="editDecision({{ row.copyright_decision_pk }}, '{{ row.textfinding|e('js') }}', '{{ row.description|e('js') }}', '{{ row.comment|e('js') }}', {{ row.clearing_decision_type_fk }});">
             <img class="delete" src="images/space_16.png" onclick="deleteDecision({{ row.copyright_decision_pk }});">
@@ -75,6 +82,7 @@
           <span class="undoActions" hidden>
             deleted [<a href="#" onclick="event.preventDefault();undoDecision({{ row.copyright_decision_pk }});">undo</a>]
           </span>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}

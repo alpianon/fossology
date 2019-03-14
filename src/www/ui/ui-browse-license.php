@@ -112,7 +112,11 @@ class ui_browse_license extends DefaultPlugin
     if (!$this->uploadDao->isAccessible($upload, $groupId)) {
       return $this->flushContent(_("Permission Denied"));
     }
-
+    $hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
+    if (!$hasWritePermission)
+    {
+      $vars['auditDenied'] = true;
+    }
     $item = intval($request->get("item"));
 
     $vars['baseuri'] = Traceback_uri();

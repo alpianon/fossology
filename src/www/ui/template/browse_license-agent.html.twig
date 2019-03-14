@@ -23,7 +23,7 @@
   {% endif %}
 {% endif %}
 
-{% if successfulAgents|length <1 or latestSuccess.agent_id != currentAgentId %}
+{% if (successfulAgents|length <1 or latestSuccess.agent_id != currentAgentId) and not auditDenied %}
   <span id="{{ agentName }}_span"><br/>
     <button type="button" id="{{ agentName }}" name="{{ agentName }}"
             onclick="scheduleScan({{ uploadId }}, 'agent_{{ agentName }}','#job{{ agentName }}IdResult');">

@@ -31,7 +31,7 @@ class PopupLicense extends FO_Plugin
   {
     $this->Name = "popup-license";
     $this->Title = TITLE_PopupLicense;
-    $this->DBaccess = PLUGIN_DB_WRITE;
+    $this->DBaccess = PLUGIN_DB_READ;
     $this->LoginFlag = 0;
     $this->NoMenu = 0;
     parent::__construct();

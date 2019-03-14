@@ -68,7 +68,7 @@ class AjaxClearingView extends FO_Plugin
   {
     $this->Name = "conclude-license";
     $this->Title = _("Change concluded License ");
-    $this->DBaccess = PLUGIN_DB_WRITE;
+    $this->DBaccess = PLUGIN_DB_READ;
     $this->Dependency = array("view");
     $this->LoginFlag = 0;
     $this->NoMenu = 0;
@@ -147,7 +147,14 @@ class AjaxClearingView extends FO_Plugin
     {
       $licenseId = $licenseRef->getId();
       $shortNameWithFullTextLink = $this->urlBuilder->getLicenseTextUrl($licenseRef);
+      if ($this->hasWritePermission)
+      {
       $actionLink = "<a href=\"javascript:;\" onClick=\"addLicense($uploadId, $uploadTreeId, $licenseId);\"><img src=\"images/space_16.png\" class=\"add\"/></a>";
+      }
+      else
+      {
+        $actionLink = "";
+      }
 
       $licenses[] = array($shortNameWithFullTextLink, $actionLink);
     }
@@ -191,6 +198,8 @@ class AjaxClearingView extends FO_Plugin
     $licenseId = GetParm("licenseId", PARM_INTEGER);
     $sort0 = GetParm("sSortDir_0", PARM_STRING);
 
+    $this->hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
+
     $orderAscending = isset($sort0) ? $sort0 === "asc" : true;
 
     switch ($action)
@@ -202,19 +211,31 @@ class AjaxClearingView extends FO_Plugin
         return new JsonResponse($this->doClearings($orderAscending, $groupId, $uploadId, $uploadTreeId));
 
       case "addLicense":
+        if ($this->hasWritePermission)
+        {
         $this->clearingDao->insertClearingEvent($uploadTreeId, $userId, $groupId, $licenseId, false, ClearingEventTypes::USER);
+        }
         return new JsonResponse();
 
       case "removeLicense":
+        if ($this->hasWritePermission)
+        {
         $this->clearingDao->insertClearingEvent($uploadTreeId, $userId, $groupId, $licenseId, true, ClearingEventTypes::USER);
+        }
         return new JsonResponse();
         
       case "makeMainLicense":
+        if ($this->hasWritePermission)
+        {
         $this->clearingDao->makeMainLicense($uploadId, $groupId, $licenseId);
+        }
         return new JsonResponse();
 
       case "removeMainLicense":
+        if ($this->hasWritePermission)
+        {
         $this->clearingDao->removeMainLicense($uploadId, $groupId, $licenseId);
+        }
         return new JsonResponse();
         
       case "setNextPrev":
@@ -224,6 +245,10 @@ class AjaxClearingView extends FO_Plugin
         return new JsonResponse($this->doNextPrev($action, $uploadId, $uploadTreeId, $groupId));
 
       case "updateClearings":
+        if ($_SESSION[Auth::USER_LEVEL] < Auth::PERM_WRITE)
+        {
+          return $this->createPlainResponse("fail");
+        }
         $id = GetParm("id", PARM_STRING);
         if (isset($id))
         {
@@ -264,7 +289,14 @@ class AjaxClearingView extends FO_Plugin
      if(!empty($forValue)) {
        $value = substr(ltrim($forValue, " \t\n"), 0, 15)."...";
      }
+    if ($this->hasWritePermission)
+    {
     return "<a href=\"javascript:;\" style='$classAttr' id='clearingsForSingleFile$licenseId$what' onclick=\"openTextModel($uploadTreeId, $licenseId, $what);\" title='".htmlspecialchars($forValue, ENT_QUOTES)."'>$value</a>";
+  }
+    else
+    {
+      return ($value <> "Click to add") ? "$value": "-";
+    }
   }
 
   /**
@@ -305,16 +337,39 @@ class AjaxClearingView extends FO_Plugin
       }
 
       $licenseShortNameWithLink = $this->urlBuilder->getLicenseTextUrl($clearingResult->getLicenseRef());
+      if ($this->hasWritePermission)
+      {
       $actionLink = "<a href=\"javascript:;\" onclick=\"removeLicense($uploadId, $uploadTreeId, $licenseId);\"><img class=\"delete\" src=\"images/space_16.png\" alt=\"\"/></a>";
+      }
+      else
+      {
+        $actionLink = "";
+      }
       if (in_array($clearingResult->getLicenseId(), $mainLicIds))
       {
+        if ($this->hasWritePermission)
+        {
         $tooltip = _('This is a main license for the upload. Click to discard selection.');
         $actionLink .= " <a href=\"javascript:;\" onclick=\"removeMainLicense($uploadId, $licenseId);\"><img src=\"images/icons/star_filled_16.png\" alt=\"mainLicense\" title=\"$tooltip\" border=\"0\"/></a>";
       }
       else
       {
+          $tooltip = _('This is a main license for the upload.');
+          $actionLink .= " <img src=\"images/icons/star_filled_16.png\" alt=\"mainLicense\" title=\"$tooltip\" border=\"0\"/>";
+        }
+      }
+      else
+      {
+        if ($this->hasWritePermission)
+        {
         $tooltip = _('Click to select this as a main license for the upload.');
         $actionLink .= " <a href=\"javascript:;\" onclick=\"makeMainLicense($uploadId, $licenseId);\"><img src=\"images/icons/star_16.png\" alt=\"noMainLicense\" title=\"$tooltip\" border=\"0\"/></a>";
+      }
+        else
+        {
+          $tooltip = _('This is NOT a main license for the upload.');
+          $actionLink .= " <img src=\"images/icons/star_16.png\" alt=\"noMainLicense\" title=\"$tooltip\" border=\"0\"/>";
+        }
       }
       $detectorType = $this->licenseDao->getLicenseById($clearingResult->getLicenseId(), $groupId)->getDetectorType();
       $id = "$uploadTreeId,$licenseId";
@@ -338,7 +393,14 @@ class AjaxClearingView extends FO_Plugin
         $agents = $this->getAgentInfo($clearingResult, $uberUri, $uploadTreeId);
         $licenseShortNameWithLink = $this->urlBuilder->getLicenseTextUrl($clearingResult->getLicenseRef());
         $licenseId = $clearingResult->getLicenseId();
+        if ($this->hasWritePermission)
+        {
         $actionLink = "<a href=\"javascript:;\" onclick=\"addLicense($uploadId, $uploadTreeId, $licenseId);\"><img class=\"add\" src=\"images/space_16.png\" alt=\"\"/></a>";
+        }
+        else
+        {
+          $actionLink = "";
+        }
         $filled = in_array($clearingResult->getLicenseId(), $mainLicIds) ? 'filled_' : '';
         $actionLink .= ' <img src="images/icons/star_'.$filled.'16.png" alt="mainLicense"/>';
 

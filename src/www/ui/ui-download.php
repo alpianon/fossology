@@ -39,7 +39,7 @@ class ui_download extends FO_Plugin
     $this->Name       = "download";
     $this->Title      = _("Download File");
     $this->Dependency = array();
-    $this->DBaccess   = PLUGIN_DB_WRITE;
+    $this->DBaccess   = PLUGIN_DB_READ;
     parent::__construct();
   }
 

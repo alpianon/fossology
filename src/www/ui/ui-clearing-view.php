@@ -74,7 +74,7 @@ class ClearingView extends FO_Plugin
   {
     $this->Name = "view-license";
     $this->Title = TITLE_clearingView;
-    $this->DBaccess = PLUGIN_DB_WRITE;
+    $this->DBaccess = PLUGIN_DB_READ;
     $this->Dependency = array("view");
     $this->LoginFlag = 0;
     $this->NoMenu = 0;
@@ -265,7 +265,7 @@ class ClearingView extends FO_Plugin
     $highlights = $this->getSelectedHighlighting($itemTreeBounds, $licenseId, $selectedAgentId, $highlightId, $clearingId, $uploadId);
 
     $isSingleFile = !$itemTreeBounds->containsFiles();
-    $hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId);
+    $hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
 
     $clearingDecisions = null;
     if ($isSingleFile || $hasWritePermission)

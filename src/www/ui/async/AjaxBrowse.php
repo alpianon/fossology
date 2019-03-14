@@ -50,6 +50,8 @@ class AjaxBrowse extends DefaultPlugin
   private $userPerm;
   /** @var array */
   private $statusTypes;
+  /** @var boolean */
+  private $hasWritePermission;
 
   function __construct()
   {
@@ -83,7 +85,7 @@ class AjaxBrowse extends DefaultPlugin
     {
       throw new \Exception('You cannot access to this upload');
     }
-
+    $this->hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
     $columnName = $request->get('columnName');
     $statusId = intval($request->get('statusId'));
     $value = intval($request->get('value'));
@@ -219,6 +221,10 @@ class AjaxBrowse extends DefaultPlugin
     {
       $currentStatus = $this->statusTypes[4];
     }
+    elseif (!$this->hasWritePermission)
+    {
+      $currentStatus = $statusTypesAvailable[$row['status_fk']];
+    }
     else
     {
       $statusAction = " onchange =\"changeTableEntry(this, $uploadId,'status_fk' )\" ";
@@ -246,7 +252,7 @@ class AjaxBrowse extends DefaultPlugin
       $mainLicenses[] = '<a onclick="javascript:window.open(\''.Traceback_uri()
               ."?mod=popup-license&rf=$lic[rf_pk]','License text','width=600,height=400,toolbar=no,scrollbars=yes,resizable=yes');"
               .'" href="javascript:;">'.$lic['rf_shortname'].'</a>'
-              ."<img onclick=\"removeMainLicense($uploadId,$lic[rf_pk]);\" class=\"delete\" src=\"images/space_16.png\" alt=\"\"/></img>";
+              .($this->hasWritePermission ? "<img onclick=\"removeMainLicense($uploadId,$lic[rf_pk]);\" class=\"delete\" src=\"images/space_16.png\" alt=\"\"/></img>" : "");
     }
     $this->dbManager->freeResult($res);
 

@@ -54,7 +54,11 @@
               </th>
               <th><input type="checkbox" id="openCBoxFilter"/>{{ 'open'|trans }}</th>
               <th></th>
-              <th><button type="button" id="markIrrelevant" >MarkAsIrrelevant</button></th>
+              <th>
+              {% if not auditDenied %}
+                <button type="button" id="markIrrelevant" >MarkAsIrrelevant</button>
+              {% endif %}
+              </th>
             </tr>
             <tr><th></th><th></th><th></th><th></th><th></th><th></th></tr>
           </thead>

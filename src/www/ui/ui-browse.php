@@ -226,6 +226,13 @@ class ui_browse extends FO_Plugin
     $Upload = GetParm("upload", PARM_INTEGER);  // upload_pk to browse
     $Item = GetParm("item", PARM_INTEGER);  // uploadtree_pk to browse
 
+    $hasWritePermission = $this->uploadDao->isEditable($Upload, Auth::getGroupId()) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
+
+    if (!$hasWritePermission)
+    {
+      $this->vars['auditDenied'] = true;
+    }
+
     /* check if $folder_pk is accessible to logged in user */
     if(!empty($folder_pk) && !$this->folderDao->isFolderAccessible($folder_pk))
     {

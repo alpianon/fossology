@@ -592,7 +592,7 @@ class ui_view_info extends FO_Plugin
     return $VT;
   }
 
-  function ShowReportInfo($Upload)
+  function ShowReportInfo($Upload, $rw)
   {
     $VT = "";
     $text = _("Report Info");
@@ -617,6 +617,7 @@ class ui_view_info extends FO_Plugin
     }
 
     $VT .= "<form action='' name='formReportInfo' method='post'>";
+    $VT .= $rw ? "<fieldset>" : "<fieldset disabled>";
     $VT .= "<table border=1 width='50%' >\n";
     $text = _("Attribute");
     $text2 = _("Info");
@@ -670,8 +671,9 @@ class ui_view_info extends FO_Plugin
     $VT .= "<tr><td align='left'>" . $attrib13 . "</td><td align='left'><input type='Text' name='gaAdditional' style='width:99%' value='" . $gaAdditional . "'></td>";
     $attrib14 = "General Risks (optional)";
     $VT .= "<tr><td align='left'>" . $attrib14 . "</td><td align='left'><input type='Text' name='gaRisk' style='width:99%' value='" . $gaRisk . "'></td>";
-    $VT .= "<tr><td align='center' colspan='2' ><input type='submit' name='submitReportInfo' value='Submit' /></td></tr>";
+    if ($rw) {$VT .= "<tr><td align='center' colspan='2' ><input type='submit' name='submitReportInfo' value='Submit' /></td></tr>";}
     $VT .= "</table><p>\n";
+    $VT .= "</fieldset>";
     $VT .= "</form>";
 
     return $VT;
@@ -706,12 +708,14 @@ class ui_view_info extends FO_Plugin
     $uploadId = GetParm("upload",PARM_INTEGER);
     if (!$this->uploadDao->isAccessible($uploadId, Auth::getGroupId())) return;
 
+    $rw = $this->uploadDao->isEditable($uploadId, Auth::getGroupId()) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
+
     $itemId = GetParm("item",PARM_INTEGER);
     $this->vars['micromenu'] = Dir2Browse("browse", $itemId, NULL, $showBox=0, "View-Meta");
 
     $submitReportInfo = GetParm("submitReportInfo", PARM_STRING);
 
-    if(isset($submitReportInfo)){
+    if(isset($submitReportInfo) && $rw){
       $reviewedBy = GetParm('reviewedBy', PARM_TEXT);
       $footerNote = GetParm('footerNote', PARM_TEXT);
       $reportRel = GetParm('reportRel', PARM_TEXT);
@@ -732,7 +736,7 @@ class ui_view_info extends FO_Plugin
     }
 
     $V="";
-    $V .= $this->ShowReportInfo($uploadId);
+    $V .= $this->ShowReportInfo($uploadId, $rw);
     $V .= $this->ShowTagInfo($uploadId, $itemId);
     $V .= $this->ShowPackageinfo($uploadId, $itemId, 1);
     $V .= $this->ShowMetaView($uploadId, $itemId);

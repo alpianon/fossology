@@ -154,7 +154,7 @@ class CopyrightHistogramProcessPost extends FO_Plugin
     $aaData = array();
     if (!empty($rows))
     {
-      $rw = $this->uploadDao->isEditable($upload, Auth::getGroupId());
+      $rw = $this->uploadDao->isEditable($upload, Auth::getGroupId()) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
       foreach ($rows as $row)
       {
         $aaData [] = $this->fillTableRow($row, $item, $upload, $agent_pk, $type,$listPage, $filter, $activated, $rw);

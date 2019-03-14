@@ -53,6 +53,8 @@ class AjaxFileBrowser extends DefaultPlugin
   private $licenseProjector;
   /** @var array */
   protected $agentNames = array('nomos' => 'N', 'monk' => 'M', 'ninka' => 'Nk', 'reportImport' => 'I');
+  /** @var boolean */
+  private $hasWritePermission;
   
   public function __construct() {
     parent::__construct(self::NAME, array(
@@ -77,7 +79,7 @@ class AjaxFileBrowser extends DefaultPlugin
     if (!$this->uploadDao->isAccessible($upload, $groupId)) {
       throw new \Exception("Permission Denied");
     }
-
+    $this->hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
     $item = intval($request->get("item"));
     $this->uploadtree_tablename = $this->uploadDao->getUploadtreeTableName($upload);
     $itemTreeBounds = $this->uploadDao->getItemTreeBounds($item, $this->uploadtree_tablename);
@@ -310,6 +312,8 @@ class AjaxFileBrowser extends DefaultPlugin
     
     $licenseList = implode(', ', $licenseEntries);
 
+    if ($this->hasWritePermission)
+    {
     $fileListLinks = FileListLinks($uploadId, $childUploadTreeId, 0, $fileId, true, $UniqueTagArray, $this->uploadtree_tablename, !$isFlat);
 
     if (! $isContainer)
@@ -320,6 +324,11 @@ class AjaxFileBrowser extends DefaultPlugin
       $fileListLinks .= "[<a href='" . Traceback_uri() . "?mod=ui_readmeoss&upload=$uploadId&item=$childUploadTreeId' >$text</a>]";
       $text = _("SPDX");
       $fileListLinks .= "[<a href='" . Traceback_uri() . "?mod=ui_spdx2&upload=$uploadId&item=$childUploadTreeId' >$text</a>]";
+      }
+    }
+    else
+    {
+      $fileListLinks = "";
     }
 
     return array($fileName, $licenseList, $fileListLinks);

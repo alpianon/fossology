@@ -65,6 +65,8 @@ class AjaxExplorer extends DefaultPlugin
   private $filesToBeCleared;
   /** @var array */
   protected $agentNames = array('nomos' => 'N', 'monk' => 'M', 'ninka' => 'Nk', 'reportImport' => 'I');
+  /** @var boolean */
+  private $hasWritePermission;
   
   public function __construct() {
     parent::__construct(self::NAME, array(
@@ -91,7 +93,7 @@ class AjaxExplorer extends DefaultPlugin
     if (!$this->uploadDao->isAccessible($upload, $groupId)) {
       throw new \Exception("Permission Denied");
     }
-
+    $this->hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
     $item = intval($request->get("item"));
     $this->uploadtree_tablename = $this->uploadDao->getUploadtreeTableName($upload);
     $itemTreeBounds = $this->uploadDao->getItemTreeBounds($item, $this->uploadtree_tablename);
@@ -430,6 +432,8 @@ class AjaxExplorer extends DefaultPlugin
     $editedLicenseList = implode(', ', $concludedLicenses);
     $licenseList = implode(', ', $licenseEntries);
 
+    if ($this->hasWritePermission)
+    {
     $fileListLinks = FileListLinks($uploadId, $childUploadTreeId, 0, $fileId, true, $UniqueTagArray, $this->uploadtree_tablename, !$isFlat);
 
     $getTextEditUser = _("Edit");
@@ -441,6 +445,12 @@ class AjaxExplorer extends DefaultPlugin
       $fileListLinks .= "[<a href='#' onclick='openBulkModal($childUploadTreeId)' >$getTextEditBulk</a>]";
     }
     $fileListLinks .= "<input type='checkbox' id='selectedForIrrelevant' value='".$childUploadTreeId."'>";
+    }
+    else
+    {
+      $fileListLinks = "";
+    }
+
     $filesThatShouldStillBeCleared = array_key_exists($childItemTreeBounds->getItemId()
         , $this->filesThatShouldStillBeCleared) ? $this->filesThatShouldStillBeCleared[$childItemTreeBounds->getItemId()] : 0;
 

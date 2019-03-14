@@ -86,6 +86,7 @@ class Xpview extends DefaultPlugin
     $vars = array();
     $uploadId = intval($request->get('upload'));
     $uploadTreeId = intval($request->get('item'));
+    $groupId = Auth::getGroupId();
     if (empty($uploadTreeId) || empty($uploadId))
     {
       $text = _("Empty Input");
@@ -123,13 +124,19 @@ class Xpview extends DefaultPlugin
       return $this->responseBad('No item selected.');
     }
 
+    $hasWritePermission = $this->uploadDao->isEditable($uploadId, $groupId) && $_SESSION[Auth::USER_LEVEL] >= Auth::PERM_WRITE;
+    if (!$hasWritePermission)
+    {
+      $vars['auditDenied'] = true;
+    }
+
     $copyrightDecisionMap = $this->decisionTypes->getMap();
     $vars['micromenu'] = Dir2Browse($this->modBack, $uploadTreeId, NULL, $showBox = 0, "View", -1, '', '', $uploadTreeTableName);
 
     $lastItem = GetParm("lastItem", PARM_INTEGER);
     $changed= GetParm("changedSomething", PARM_STRING);
     $userId = Auth::getUserId();
-    if (!empty($lastItem) && $changed =="true")
+    if (!empty($lastItem) && $changed =="true" && $hasWritePermission)
     {
       $lastUploadEntry = $this->uploadDao->getUploadEntry($lastItem, $uploadTreeTableName);
       $clearingType = $_POST['clearingTypes'];

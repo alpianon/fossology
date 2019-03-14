@@ -8,7 +8,7 @@ tableColumns = [
   {"sTitle": "{{ "Upload Name and Description"|trans }}", "sClass": "left"},
   {"sTitle": "{{ "Status"|trans }}", "sClass": "center", "bSearchable": false},
   {
-    "sTitle": "{{ "Comment"|trans }}", "sClass": "center cc", "bSortable": false, "bSearchable": false,
+    "sTitle": "{{ "Comment"|trans }}", "sClass": "center{% if not auditDenied %} cc{% endif %}", "bSortable": false, "bSearchable": false,
     "mRender": 2
   },
   {"sTitle": "{{ "Main licenses"|trans }}", "sClass": "center", "bSearchable": false, "bSortable": false},
@@ -118,6 +118,9 @@ $(function() {
   });
   
 function prioColumn(source, type, val) {
+  if ("{{ auditDenied }}") {
+    return '';
+  }
   if (type === 'set') {
     source[1] = val;
     // Store the computed display and filter values for efficiency?
