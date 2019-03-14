@@ -27,6 +27,7 @@ class Adj2nestAgentPlugin extends AgentPlugin
     $this->AgentName = "adj2nest";
 
     parent::__construct();
+    $this->DBaccess = PLUGIN_DB_READ;
   }
 
   function AgentHasResults($uploadId=0)

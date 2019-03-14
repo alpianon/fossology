@@ -31,7 +31,7 @@ class ReadMeOssPlugin extends DefaultPlugin
   {
     parent::__construct(self::NAME, array(
         self::TITLE => _("ReadME_OSS generation"),
-        self::PERMISSION => Auth::PERM_WRITE,
+        self::PERMISSION => Auth::PERM_READ,
         self::REQUIRES_LOGIN => TRUE
     ));
   }

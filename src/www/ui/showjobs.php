@@ -41,7 +41,7 @@ class showjobs extends FO_Plugin
     $this->Title      = TITLE_showjobs;
     $this->MenuOrder  = 5;
     $this->Dependency = array("browse");
-    $this->DBaccess   = PLUGIN_DB_WRITE;
+    $this->DBaccess   = PLUGIN_DB_READ;
 
     global $container;
     $this->showJobsDao = $container->get('dao.show_jobs');

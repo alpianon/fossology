@@ -26,6 +26,7 @@ class ReadMeOssAgentPlugin extends AgentPlugin
     $this->AgentName = "readmeoss";
   
     parent::__construct();
+    $this->DBaccess = PLUGIN_DB_READ;
   }
 
   function preInstall()

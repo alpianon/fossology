@@ -51,6 +51,7 @@ class ReadmeOssAgent extends Agent
     $this->licenseMainGetter = new LicenseMainGetter();
 
     parent::__construct(README_AGENT_NAME, AGENT_VERSION, AGENT_REV);
+    $this->DBaccess   = PLUGIN_DB_READ;
 
     $this->uploadDao = $this->container->get('dao.upload');
 

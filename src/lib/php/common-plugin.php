@@ -112,6 +112,7 @@ function plugin_disable($Level)
     }
     if ($P->DBaccess > $Level)
     {
+      if ($Level == 1 && $P->Name == 'agent_readmeoss') {error_log('disabling plugin ' . $P->Name);}
       //echo "<pre>COMP: Going to disable $P->Name\n</pre>";
       //echo "<pre>COMP: disabling plugins with $P->DBaccess  >= $Level\n</pre>";
       $P->unInstall();
