@@ -263,7 +263,7 @@ class AjaxBrowse extends DefaultPlugin
       $currentAssignee = array_key_exists($row['assignee'], $users) ? $users[$row['assignee']] : _('Unassigned');
     }
     $rejectableUploadId = ($this->userPerm || $row['status_fk'] < 4) ? $uploadId : 0;
-    $tripleComment = array($rejectableUploadId, $row['status_fk'], htmlspecialchars($row['status_comment']));
+    $tripleComment = array($rejectableUploadId, $row['status_fk'], $row['status_comment']);
     
     $sql = "SELECT rf_pk, rf_shortname FROM upload_clearing_license ucl, license_ref"
             . " WHERE ucl.group_fk=$1 AND upload_fk=$2 AND ucl.rf_fk=rf_pk";
