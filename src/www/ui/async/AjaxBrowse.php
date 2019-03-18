@@ -25,6 +25,7 @@ use Fossology\Lib\Dao\UserDao;
 use Fossology\Lib\Db\DbManager;
 use Fossology\Lib\Plugin\DefaultPlugin;
 use Fossology\Lib\Proxy\UploadBrowseProxy;
+use Fossology\Lib\Proxy\UploadTreeProxy;
 use Fossology\Lib\UI\MenuHook;
 use Fossology\Lib\UI\MenuRenderer;
 use Fossology\Lib\Util\DataTablesUtility;
@@ -179,6 +180,9 @@ class AjaxBrowse extends DefaultPlugin
     $folder = $request->get('folder');
     
     $uploadId = intval($row['upload_pk']);
+    $groupId = Auth::getGroupId();
+    $uploadTreeTableName = $this->uploadDao->getUploadtreeTableName($uploadId);
+
     $description = htmlentities($row['upload_desc']);
 
     $fileName = $row['ufile_name'];
@@ -230,6 +234,25 @@ class AjaxBrowse extends DefaultPlugin
       $statusAction = " onchange =\"changeTableEntry(this, $uploadId,'status_fk' )\" ";
       $currentStatus = $this->createSelect("Status" . $this->userPerm . "Of_$rowCounter", $statusTypesAvailable, $row['status_fk'], $statusAction);
     }
+    if ($this->hasWritePermission) {
+      $noLicenseUploadTreeView = new UploadTreeProxy($uploadId,
+      $options = array(UploadTreeProxy::OPT_SKIP_THESE=>"noLicense", UploadTreeProxy::OPT_GROUP_ID=>$groupId),
+      $uploadTreeTableName,
+      $viewName = 'no_license_uploadtree' . $uploadId);
+      $filesOfInterest = $noLicenseUploadTreeView->count();
+
+      $nonClearedUploadTreeView = new UploadTreeProxy($uploadId,
+          $options = array(UploadTreeProxy::OPT_SKIP_THESE => "alreadyCleared", UploadTreeProxy::OPT_GROUP_ID=>$groupId),
+          $uploadTreeTableName,
+          $viewName = 'already_cleared_uploadtree' . $uploadId);
+      $filesToBeCleared = $nonClearedUploadTreeView->count();
+      $filesToBeCleared = ($filesToBeCleared > 0) ? $filesToBeCleared : "";
+    } else {
+      $filesToBeCleared = "";
+    }
+
+
+
     if ($this->userPerm)
     {
       $action = " onchange =\"changeTableEntry(this, $uploadId, 'assignee')\"";
@@ -256,7 +279,7 @@ class AjaxBrowse extends DefaultPlugin
     }
     $this->dbManager->freeResult($res);
 
-    $output = array($nameColumn, $currentStatus, $tripleComment, implode(', ', $mainLicenses), $currentAssignee, $dateCol, $pairIdPrio);
+    $output = array($nameColumn, $currentStatus, $filesToBeCleared, $tripleComment, implode(', ', $mainLicenses), $currentAssignee, $dateCol, $pairIdPrio);
     return $output;
   }
 
@@ -335,7 +358,7 @@ class AjaxBrowse extends DefaultPlugin
 
   private function getOrderString()
   {
-    $columnNamesInDatabase = array('upload_filename', 'upload_clearing.status_fk', 'UNUSED', 'UNUSED', 'upload_clearing.assignee', 'upload_ts', 'upload_clearing.priority');
+    $columnNamesInDatabase = array('upload_filename', 'upload_clearing.status_fk', 'UNUSED', 'UNUSED', 'UNUSED', 'upload_clearing.assignee', 'upload_ts', 'upload_clearing.priority');
 
     $orderString = $this->dataTablesUtility->getSortingString($_GET, $columnNamesInDatabase);
 
